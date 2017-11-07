@@ -1,0 +1,29 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "taskName": "publish",
+            "command": "dotnet publish -c Release -o bin",
+            "type": "shell",
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "taskName": "compile",
+            "command": "cd bin && dotnet ../../neo-compiler/neon/bin/neon.dll neo-raffle.dll",
+            "type": "shell",
+            "dependsOn": [
+                "publish"
+            ]
+        },
+        {
+            "taskName": "dump",
+            "command": "hexdump -ve '1/1 \"%.2x\"' bin/neo-raffle.avm | pbcopy",
+            "type": "shell",
+            "dependsOn": [
+                "compile"
+            ],
+            "problemMatcher": []
+        }
+    ]
+}
+
