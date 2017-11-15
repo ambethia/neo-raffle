@@ -9,7 +9,7 @@ namespace Raffle
     {
         private const int minAward = 1 * 100000000;
 
-        private static readonly byte[] gas_asset_id = { 231, 45, 40, 105, 121, 238, 108, 177, 183, 230, 93, 253, 223, 178, 227, 132, 16, 11, 141, 20, 142, 119, 88, 222, 66, 228, 22, 139, 113, 121, 44, 96 };
+        // private static readonly byte[] gas_asset_id = { 231, 45, 40, 105, 121, 238, 108, 177, 183, 230, 93, 253, 223, 178, 227, 132, 16, 11, 141, 20, 142, 119, 88, 222, 66, 228, 22, 139, 113, 121, 44, 96 };
 
         public static object Main(string operation, byte[] txid)
         {
@@ -55,6 +55,12 @@ namespace Raffle
                 {
                     return FindWinner(txid);
                 }
+
+                if (operation == "winner")
+                {
+                    byte[] winner = Storage.Get(Storage.CurrentContext, "winner");
+                    return winner;
+                }
             }
 
             return false;
@@ -66,22 +72,35 @@ namespace Raffle
             Header header = Blockchain.GetHeader(Blockchain.GetHeight());
             uint elapsed = header.Timestamp - LastPayoutTime();
             uint minDelta = 60;
-
-            // Prevent the sweep from being executed early.
+            Runtime.Notify("elapsed", elapsed);
+            Runtime.Notify("minDelta!", minDelta);
             if (elapsed < minDelta)
             {
+                Runtime.Log("Wut");
                 return false;
             }
-
-            long awardTotal = 0;
-            foreach (TransactionOutput output in tx.GetReferences())
+            else
             {
+                Runtime.Log("Cool");
+            };
+
+            byte[] gas_asset_id = { 231, 45, 40, 105, 121, 238, 108, 177, 183, 230, 93, 253, 223, 178, 227, 132, 16, 11, 141, 20, 142, 119, 88, 222, 66, 228, 22, 139, 113, 121, 44, 96 };
+            Runtime.Notify("gas_asset_id:", gas_asset_id);
+            TransactionOutput[] outputs = tx.GetReferences();
+            long awardTotal = 0;
+            foreach (TransactionOutput output in outputs)
+            {
+                Runtime.Notify("AssetId:", output.AssetId);
+                Runtime.Notify("output #", output.ScriptHash);
                 if (output.AssetId == gas_asset_id)
                 {
                     awardTotal += output.Value;
                 }
             }
             // TODO: verify awardTotal == account Balance
+            Runtime.Notify("minAward", minAward);
+            Runtime.Notify("awardTotal", awardTotal);
+
             if (awardTotal < minAward) return false;
 
             return true;
@@ -92,12 +111,15 @@ namespace Raffle
             Runtime.Log("Find Winner");
             Header header = Blockchain.GetHeader(Blockchain.GetHeight());
             Transaction tx = Blockchain.GetTransaction(txid);
+            TransactionOutput[] outputs = tx.GetReferences();
             byte[] receiver = ExecutionEngine.ExecutingScriptHash; // Removing this line breaks everything. Go figure.
+            byte[] gas_asset_id = { 231, 45, 40, 105, 121, 238, 108, 177, 183, 230, 93, 253, 223, 178, 227, 132, 16, 11, 141, 20, 142, 119, 88, 222, 66, 228, 22, 139, 113, 121, 44, 96 };
+
+            // Runtime.Notify("reciever", receiver);
 
             long awardTotal = 0;
-            foreach (TransactionOutput output in tx.GetReferences())
+            foreach (TransactionOutput output in outputs)
             {
-                // Should check receiver here too, but sometimes it's None?
                 if (output.AssetId == gas_asset_id)
                 {
                     awardTotal += output.Value;
@@ -113,7 +135,6 @@ namespace Raffle
                 var prevTx = Blockchain.GetTransaction(input.PrevHash);
                 var thisOutput = prevTx.GetOutputs()[input.PrevIndex];
 
-                // Should check receiver here too, but sometimes it's None?
                 if (thisOutput.AssetId == gas_asset_id)
                 {
                     var firstInput = prevTx.GetInputs()[0];
@@ -132,6 +153,11 @@ namespace Raffle
                     }
                 }
             }
+
+
+            // foreach (var output in outputs)
+            // {
+            // }
             return true;
         }
 
