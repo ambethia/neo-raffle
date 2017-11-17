@@ -6,8 +6,6 @@ A smart contract that enables a raffle/lottery on the Neo block chain. Surprisin
 
 The contract on TestNet is: [AGbcQUTrFbK7xSJeUZgFHLVAxXE9R3RiKf](https://neoscan-testnet.io/address/AGbcQUTrFbK7xSJeUZgFHLVAxXE9R3RiKf)
 
-[Source Code]()
-
 Here's an example round:
 
 ## Tickets
